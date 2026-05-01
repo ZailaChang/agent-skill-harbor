@@ -67,11 +67,31 @@ function Merge-Settings {
 
 Merge-Settings $UserSettingsPath
 
-# Only prompt for profiles that already have a settings.json (skip empty/unused profiles)
-foreach ($p in $ProfileSettings) {
-    if (-not (Test-Path $p)) { continue }
-    $answer = Read-Host "Merge into profile settings? $p (y/N)"
-    if ($answer -eq 'y') { Merge-Settings $p }
+# Build list of profiles that actually have a settings.json
+$ExistingProfiles = $ProfileSettings | Where-Object { Test-Path $_ }
+
+if ($ExistingProfiles.Count -gt 0) {
+    Write-Host ""
+    Write-Host "Found $($ExistingProfiles.Count) profile(s) with settings:"
+    for ($i = 0; $i -lt $ExistingProfiles.Count; $i++) {
+        Write-Host "  [$($i + 1)] $($ExistingProfiles[$i])"
+    }
+    Write-Host "  [A] All profiles"
+    Write-Host "  [Enter] Skip"
+    $choice = Read-Host "Merge into which profile?"
+
+    if ($choice -eq 'A' -or $choice -eq 'a') {
+        foreach ($p in $ExistingProfiles) { Merge-Settings $p }
+    } elseif ($choice -match '^\d+$') {
+        $idx = [int]$choice - 1
+        if ($idx -ge 0 -and $idx -lt $ExistingProfiles.Count) {
+            Merge-Settings $ExistingProfiles[$idx]
+        } else {
+            Write-Host "Invalid number - skipping profiles."
+        }
+    } else {
+        Write-Host "Skipping profiles."
+    }
 }
 
 Write-Host ""
