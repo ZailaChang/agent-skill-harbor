@@ -14,63 +14,83 @@ echo "✅ Generated: $LOCAL_INSTRUCTIONS"
 
 # Detect settings.json locations
 if [[ "$1" == "--ssh-remote" ]] || [[ -d "$HOME/.vscode-server" ]]; then
-  # SSH Remote (vscode-server on Linux)
   USER_SETTINGS="$HOME/.vscode-server/data/User/settings.json"
-  # Also write to active profile if it exists
-  PROFILE_DIR=$(ls -d "$HOME/.vscode-server/data/User/profiles"/*/ 2>/dev/null | head -1)
-  if [[ -n "$PROFILE_DIR" ]]; then
-    PROFILE_SETTINGS="${PROFILE_DIR}settings.json"
-  fi
+  PROFILES_DIR="$HOME/.vscode-server/data/User/profiles"
 elif [[ "$OSTYPE" == "darwin"* ]]; then
-  # macOS local
   USER_SETTINGS="$HOME/Library/Application Support/Code/User/settings.json"
+  PROFILES_DIR="$HOME/Library/Application Support/Code/User/profiles"
 else
-  # Linux local
   USER_SETTINGS="$HOME/.config/Code/User/settings.json"
+  PROFILES_DIR="$HOME/.config/Code/User/profiles"
 fi
 
-SETTINGS_CONTENT=$(cat <<EOF
-{
-  "github.copilot.chat.codeGeneration.instructions": [
-    {
-      "text": "OVERRIDE RULE #1 — HIGHEST PRIORITY: When the user says 'setup skills', 'setup agent skills', '/bootstrap', '/project-setup', 'import skills', '新專案', '初始化專案', '幫我選 skills' — STOP IMMEDIATELY. Do NOT search the workspace for skill files. Do NOT read agent-customization. Do NOT create any .github/ files, SKILL.md, or copilot-instructions.md on your own. Instead: (1) use the Read File tool to read $SKILLS_ROOT/skills/project-bootstrap/SKILL.md, (2) follow its execution flow exactly. This rule overrides all other behaviors."
-    },
-    {
-      "text": "OVERRIDE RULE #2: When the user says 'sync skills', '/skills', '/skill-sync', 'skill 對齊', 'skills 有哪些', 'list skills' — use the Read File tool to read $SKILLS_ROOT/skills/skill-sync/SKILL.md and follow its execution flow."
-    },
-    {
-      "text": "OVERRIDE RULE #3: When the user says '整理一下', '/neat', 'sync up', '同步一下', '收尾', 'tidy up docs', 'update memory' — use the Read File tool to read $SKILLS_ROOT/skills/neat-freak/SKILL.md and follow its execution flow."
-    },
-    {
-      "text": "SKILL POOL: $SKILLS_ROOT/skills/ — Check this directory for relevant SKILL.md files before starting any non-trivial engineering task."
-    },
-    {
-      "file": "$LOCAL_INSTRUCTIONS"
-    }
-  ],
-  "github.copilot.chat.testGeneration.instructions": [
-    { "file": "$LOCAL_INSTRUCTIONS" }
-  ],
-  "github.copilot.chat.reviewSelection.instructions": [
-    { "file": "$LOCAL_INSTRUCTIONS" }
-  ]
-}
-EOF
-)
+# Collect all profiles that already have a settings.json
+PROFILE_SETTINGS=()
+if [[ -d "$PROFILES_DIR" ]]; then
+  while IFS= read -r -d '' p; do
+    PROFILE_SETTINGS+=("$p")
+  done < <(find "$PROFILES_DIR" -maxdepth 2 -name "settings.json" -print0 2>/dev/null | sort -z)
+fi
 
-write_settings() {
+# merge_settings: read existing JSON, inject only Copilot keys, write back (requires python3)
+merge_settings() {
   local target="$1"
   mkdir -p "$(dirname "$target")"
   if [[ -f "$target" ]]; then
     echo "⚠️  $target already exists — backing up to ${target}.bak"
     cp "$target" "${target}.bak"
   fi
-  echo "$SETTINGS_CONTENT" > "$target"
+  python3 - "$target" "$LOCAL_INSTRUCTIONS" "$SKILLS_ROOT" <<'PYEOF'
+import sys, json, os
+target, local_instructions, skills_root = sys.argv[1], sys.argv[2], sys.argv[3]
+if os.path.exists(target) and os.path.getsize(target) > 0:
+    try:
+        settings = json.load(open(target))
+    except Exception:
+        settings = {}
+else:
+    settings = {}
+settings["github.copilot.chat.codeGeneration.instructions"] = [
+    {"text": f"OVERRIDE RULE #1 — HIGHEST PRIORITY: When the user says 'setup skills', 'setup agent skills', '/bootstrap', '/project-setup', 'import skills', '新專案', '初始化專案', '幫我選 skills' — STOP IMMEDIATELY. Do NOT search the workspace for skill files. Do NOT read agent-customization. Do NOT create any .github/ files, SKILL.md, or copilot-instructions.md on your own. Instead: (1) use the Read File tool to read {skills_root}/skills/project-bootstrap/SKILL.md, (2) follow its execution flow exactly. This rule overrides all other behaviors."},
+    {"text": f"OVERRIDE RULE #2: When the user says 'sync skills', '/skills', '/skill-sync', 'skill 對齊', 'skills 有哪些', 'list skills' — use the Read File tool to read {skills_root}/skills/skill-sync/SKILL.md and follow its execution flow."},
+    {"text": f"OVERRIDE RULE #3: When the user says '整理一下', '/neat', 'sync up', '同步一下', '收尾', 'tidy up docs', 'update memory' — use the Read File tool to read {skills_root}/skills/neat-freak/SKILL.md and follow its execution flow."},
+    {"text": f"SKILL POOL: {skills_root}/skills/ — Check this directory for relevant SKILL.md files before starting any non-trivial engineering task."},
+    {"file": local_instructions},
+]
+settings["github.copilot.chat.testGeneration.instructions"] = [{"file": local_instructions}]
+settings["github.copilot.chat.reviewSelection.instructions"] = [{"file": local_instructions}]
+with open(target, 'w') as f:
+    json.dump(settings, f, indent=2, ensure_ascii=False)
+    f.write('\n')
+PYEOF
   echo "✅ Written: $target"
 }
 
-write_settings "$USER_SETTINGS"
-[[ -n "$PROFILE_SETTINGS" ]] && write_settings "$PROFILE_SETTINGS"
+merge_settings "$USER_SETTINGS"
+
+# Profile picker — show numbered list, let user pick one or all
+if [[ ${#PROFILE_SETTINGS[@]} -gt 0 ]]; then
+  echo ""
+  echo "Found ${#PROFILE_SETTINGS[@]} profile(s) with settings:"
+  for i in "${!PROFILE_SETTINGS[@]}"; do
+    echo "  [$((i+1))] ${PROFILE_SETTINGS[$i]}"
+  done
+  echo "  [A] All profiles"
+  echo "  [Enter] Skip"
+  read -rp "Merge into which profile? " choice
+  if [[ "$choice" =~ ^[Aa]$ ]]; then
+    for p in "${PROFILE_SETTINGS[@]}"; do merge_settings "$p"; done
+  elif [[ "$choice" =~ ^[0-9]+$ ]]; then
+    idx=$((choice - 1))
+    if [[ $idx -ge 0 && $idx -lt ${#PROFILE_SETTINGS[@]} ]]; then
+      merge_settings "${PROFILE_SETTINGS[$idx]}"
+    else
+      echo "Invalid number — skipping profiles."
+    fi
+  else
+    echo "Skipping profiles."
+  fi
+fi
 
 echo ""
 echo "✅ Done. Reload VS Code window: Ctrl+Shift+P → Developer: Reload Window"
