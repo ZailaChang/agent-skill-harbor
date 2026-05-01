@@ -1,0 +1,5 @@
+# Generated local files with machine-specific paths — never commit these
+.local/
+
+# VS Code settings backups created by setup.sh
+*.bak

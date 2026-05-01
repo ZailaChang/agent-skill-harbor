@@ -3,14 +3,14 @@
 > These are MANDATORY rules. Follow them exactly. Do not improvise.
 >
 > **After cloning this repo:** run `bash setup.sh` (Linux/macOS) or `.\setup.ps1` (Windows).
-> The setup script replaces `/home/zaila/workspaceAI/agent-skills` below with your actual clone path and writes
-> the correct `settings.json` for VS Code automatically.
+> The setup script replaces `<SKILLS_ROOT>` below with your actual clone path and generates
+> `.local/GLOBAL_INSTRUCTIONS.md`, which VS Code references via `settings.json`.
 
 ## Skill Pool Location
 
 All agent skills are stored at:
 ```
-/home/zaila/workspaceAI/agent-skills/skills/
+<SKILLS_ROOT>/skills/
 ```
 
 This is the **global staging pool**. Skills are promoted to `.github/skills/` inside a
@@ -31,7 +31,7 @@ When the user says ANY of the following (even approximately):
 - Guess what skills the user needs based on the filesystem
 
 **INSTEAD, you MUST:**
-1. Read: `/home/zaila/workspaceAI/agent-skills/skills/project-bootstrap/SKILL.md`
+1. Read: `<SKILLS_ROOT>/skills/project-bootstrap/SKILL.md`
 2. Follow its execution flow exactly (Mode A or Mode B as defined there).
 3. Only after reading that file should you proceed.
 
@@ -40,21 +40,21 @@ When the user says ANY of the following (even approximately):
 When the user says: "sync skills", "整理 skills", "/skills", "/skill-sync", "skills 有哪些",
 "skill 對齊", "list skills":
 
-1. Read: `/home/zaila/workspaceAI/agent-skills/skills/skill-sync/SKILL.md`
+1. Read: `<SKILLS_ROOT>/skills/skill-sync/SKILL.md`
 2. Follow its execution flow.
 
 ## End-of-Session Cleanup
 
 When the user says: "整理一下", "sync up", "/neat", "同步一下", "收尾", "tidy up docs":
 
-1. Read: `/home/zaila/workspaceAI/agent-skills/skills/neat-freak/SKILL.md`
+1. Read: `<SKILLS_ROOT>/skills/neat-freak/SKILL.md`
 2. Follow its execution flow.
 
 ## General Rule
 
 Before starting any non-trivial engineering task, check if a relevant skill exists at:
 ```
-/home/zaila/workspaceAI/agent-skills/skills/<skill-name>/SKILL.md
+<SKILLS_ROOT>/skills/<skill-name>/SKILL.md
 ```
 
 Available skills (check folder for latest list):

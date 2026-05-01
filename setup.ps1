@@ -5,15 +5,14 @@
 $SkillsRoot = $PSScriptRoot
 $GlobalInstructions = "$SkillsRoot\GLOBAL_INSTRUCTIONS.md"
 
-# Patch GLOBAL_INSTRUCTIONS.md with actual path (replaces <SKILLS_ROOT> placeholder)
-if (Test-Path $GlobalInstructions) {
-    $content = Get-Content $GlobalInstructions -Raw
-    if ($content -match '<SKILLS_ROOT>') {
-        $content = $content -replace '<SKILLS_ROOT>', $SkillsRoot.Replace('\', '\\')
-        $content | Set-Content $GlobalInstructions -Encoding UTF8
-        Write-Host "OK Patched GLOBAL_INSTRUCTIONS.md with: $SkillsRoot"
-    }
-}
+# Generate a LOCAL copy of GLOBAL_INSTRUCTIONS.md with real paths (never modify source)
+$LocalDir = "$SkillsRoot\.local"
+if (-not (Test-Path $LocalDir)) { New-Item -ItemType Directory -Path $LocalDir -Force | Out-Null }
+$LocalInstructions = "$LocalDir\GLOBAL_INSTRUCTIONS.md"
+$content = Get-Content "$SkillsRoot\GLOBAL_INSTRUCTIONS.md" -Raw
+$content = $content -replace '<SKILLS_ROOT>', $SkillsRoot
+$content | Set-Content $LocalInstructions -Encoding UTF8
+Write-Host "OK Generated: $LocalInstructions"
 $UserSettingsPath = "$env:APPDATA\Code\User\settings.json"
 
 # Also check for active profiles
@@ -42,14 +41,14 @@ $SettingsContent = @"
       "text": "SKILL POOL: $SkillsRoot\\skills\\ - Check this directory for relevant SKILL.md files before starting any non-trivial engineering task."
     },
     {
-      "file": "$GlobalInstructions"
+      "file": "$LocalInstructions"
     }
   ],
   "github.copilot.chat.testGeneration.instructions": [
-    { "file": "$GlobalInstructions" }
+    { "file": "$LocalInstructions" }
   ],
   "github.copilot.chat.reviewSelection.instructions": [
-    { "file": "$GlobalInstructions" }
+    { "file": "$LocalInstructions" }
   ]
 }
 "@

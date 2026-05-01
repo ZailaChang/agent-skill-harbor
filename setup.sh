@@ -4,13 +4,13 @@
 set -e
 
 SKILLS_ROOT="$(cd "$(dirname "$0")" && pwd)"
-GLOBAL_INSTRUCTIONS="$SKILLS_ROOT/GLOBAL_INSTRUCTIONS.md"
 
-# Patch GLOBAL_INSTRUCTIONS.md with actual path (replaces <SKILLS_ROOT> placeholder)
-if grep -q '<SKILLS_ROOT>' "$GLOBAL_INSTRUCTIONS" 2>/dev/null; then
-  sed -i "s|<SKILLS_ROOT>|$SKILLS_ROOT|g" "$GLOBAL_INSTRUCTIONS"
-  echo "✅ Patched GLOBAL_INSTRUCTIONS.md with: $SKILLS_ROOT"
-fi
+# Generate a LOCAL copy of GLOBAL_INSTRUCTIONS.md with real paths (never modify source)
+LOCAL_DIR="$SKILLS_ROOT/.local"
+mkdir -p "$LOCAL_DIR"
+LOCAL_INSTRUCTIONS="$LOCAL_DIR/GLOBAL_INSTRUCTIONS.md"
+sed "s|<SKILLS_ROOT>|$SKILLS_ROOT|g" "$SKILLS_ROOT/GLOBAL_INSTRUCTIONS.md" > "$LOCAL_INSTRUCTIONS"
+echo "✅ Generated: $LOCAL_INSTRUCTIONS"
 
 # Detect settings.json locations
 if [[ "$1" == "--ssh-remote" ]] || [[ -d "$HOME/.vscode-server" ]]; then
@@ -45,14 +45,14 @@ SETTINGS_CONTENT=$(cat <<EOF
       "text": "SKILL POOL: $SKILLS_ROOT/skills/ — Check this directory for relevant SKILL.md files before starting any non-trivial engineering task."
     },
     {
-      "file": "$GLOBAL_INSTRUCTIONS"
+      "file": "$LOCAL_INSTRUCTIONS"
     }
   ],
   "github.copilot.chat.testGeneration.instructions": [
-    { "file": "$GLOBAL_INSTRUCTIONS" }
+    { "file": "$LOCAL_INSTRUCTIONS" }
   ],
   "github.copilot.chat.reviewSelection.instructions": [
-    { "file": "$GLOBAL_INSTRUCTIONS" }
+    { "file": "$LOCAL_INSTRUCTIONS" }
   ]
 }
 EOF
