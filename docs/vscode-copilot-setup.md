@@ -1,6 +1,6 @@
 # Setup Guide — GitHub Copilot + VS Code
 
-Quick-start for using **skill-harbor** with GitHub Copilot in VS Code
+Quick-start for using **agent-skill-harbor** with GitHub Copilot in VS Code
 (both local and SSH Remote).
 
 ---
@@ -8,10 +8,10 @@ Quick-start for using **skill-harbor** with GitHub Copilot in VS Code
 ## Step 1 — Clone the repo
 
 ```bash
-git clone https://github.com/<your-username>/skill-harbor.git ~/workspaceAI/skill-harbor
+git clone https://github.com/<your-username>/agent-skill-harbor.git ~/workspaceAI/agent-skill-harbor
 ```
 
-> The skill pool lives at `~/workspaceAI/skill-harbor/skills/`.
+> The skill pool lives at `~/workspaceAI/agent-skill-harbor/skills/`.
 > You can change this path — just run `setup.sh` again from the new location.
 
 ---
@@ -33,7 +33,7 @@ Open your VS Code user `settings.json` and add the following.
 > Write to both `settings.json` **and** the active profile `settings.json` to be safe.
 > To find your active profile id: `ls ~/.vscode-server/data/User/profiles/`
 
-**Content to add** (replace `<SKILLS_PATH>` with your actual clone path, e.g. `/home/you/workspaceAI/skill-harbor`):
+**Content to add** (replace `<SKILLS_PATH>` with your actual clone path, e.g. `/home/you/workspaceAI/agent-skill-harbor`):
 
 ```json
 {

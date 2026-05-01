@@ -16,7 +16,7 @@ description: >
 > **Purpose:** When opening a new VS Code project, select and copy relevant skills
 > from the global pool into the project so the agent has the right tools available.
 >
-> **Global skill pool:** `<SKILLS_ROOT>/skills/`  *(set by `bash setup.sh` after cloning skill-harbor)*
+> **Global skill pool:** `<SKILLS_ROOT>/skills/`  *(set by `bash setup.sh` after cloning agent-skill-harbor)*
 > **Install target:** `<new-project-root>/.github/skills/`
 
 ---

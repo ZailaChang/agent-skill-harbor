@@ -1,4 +1,4 @@
-# setup.ps1 — Install skill-harbor for VS Code (Windows local)
+# setup.ps1 — Install agent-skill-harbor for VS Code (Windows local)
 # Run once after cloning: .\setup.ps1
 # Requires PowerShell 5.1+
 

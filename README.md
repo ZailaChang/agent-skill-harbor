@@ -1,8 +1,8 @@
-# skill-harbor
+# agent-skill-harbor
 
 **A VS Code Copilot skill system with project bootstrap, registry sync, and session cleanup.**
 
-skill-harbor gives GitHub Copilot a structured skill workflow — bringing new projects online in seconds, keeping the skills registry aligned as you add skills, and reconciling docs at the end of every session.
+agent-skill-harbor gives GitHub Copilot a structured skill workflow — bringing new projects online in seconds, keeping the skills registry aligned as you add skills, and reconciling docs at the end of every session.
 
 ```
   NEW PROJECT          ONGOING            END OF SESSION
@@ -30,8 +30,8 @@ skill-harbor gives GitHub Copilot a structured skill workflow — bringing new p
 ### Linux / macOS / SSH Remote
 
 ```bash
-git clone https://github.com/ZailaChang/skill-harbor.git ~/workspaceAI/skill-harbor
-bash ~/workspaceAI/skill-harbor/setup.sh
+git clone https://github.com/ZailaChang/agent-skill-harbor.git ~/workspaceAI/agent-skill-harbor
+bash ~/workspaceAI/agent-skill-harbor/setup.sh
 ```
 
 Reload VS Code (`Ctrl+Shift+P` → `Developer: Reload Window`), then in any workspace:
@@ -43,8 +43,8 @@ setup skills
 ### Windows (local VS Code)
 
 ```powershell
-git clone https://github.com/ZailaChang/skill-harbor.git C:\Users\<you>\workspaceAI\skill-harbor
-cd C:\Users\<you>\workspaceAI\skill-harbor
+git clone https://github.com/ZailaChang/agent-skill-harbor.git C:\Users\<you>\workspaceAI\agent-skill-harbor
+cd C:\Users\<you>\workspaceAI\agent-skill-harbor
 .\setup.ps1
 ```
 
@@ -55,7 +55,7 @@ Then reload VS Code and say `setup skills`.
 ## How It Works
 
 ```
-~/workspaceAI/skill-harbor/skills/   ← global pool (this repo)
+~/workspaceAI/agent-skill-harbor/skills/   ← global pool (this repo)
          │
          │  "setup skills" → project-bootstrap copies selected skills
          ▼
@@ -72,7 +72,7 @@ See [docs/vscode-copilot-setup.md](docs/vscode-copilot-setup.md) for the full se
 ## Updating
 
 ```bash
-cd ~/workspaceAI/skill-harbor && git pull
+cd ~/workspaceAI/agent-skill-harbor && git pull
 # No re-setup needed — paths don't change
 ```
 
@@ -82,7 +82,7 @@ cd ~/workspaceAI/skill-harbor && git pull
 
 | Tier | Path | Role |
 |------|------|------|
-| **Global pool** | `~/workspaceAI/skill-harbor/skills/` | All available skills. Safe to `git pull`. |
+| **Global pool** | `~/workspaceAI/agent-skill-harbor/skills/` | All available skills. Safe to `git pull`. |
 | **Project skills** | `<project>/.github/skills/` | Skills active for that project. Copied by `project-bootstrap`. |
 
 Add a new skill to the global pool → run `sync skills` in any project to register it.

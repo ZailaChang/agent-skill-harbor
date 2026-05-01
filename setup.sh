@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# setup.sh — Install skill-harbor for VS Code (Linux / macOS / SSH Remote)
+# setup.sh — Install agent-skill-harbor for VS Code (Linux / macOS / SSH Remote)
 # Run once after cloning: bash setup.sh
 set -e
 
