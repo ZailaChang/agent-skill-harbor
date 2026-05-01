@@ -8,13 +8,17 @@
 
 ## Skill Pool Location
 
-All agent skills are stored at:
+All agent skills are stored under:
 ```
 <SKILLS_ROOT>/skills/
 ```
 
-This is the **global staging pool**. Skills are promoted to `.github/skills/` inside a
-project to become active for that project.
+Skills may be organized in **flat or nested structures**:
+- `<SKILLS_ROOT>/skills/<skill-name>/SKILL.md` (direct)
+- `<SKILLS_ROOT>/skills/<repo>/skills/<skill-name>/SKILL.md` (nested from cloned repos)
+
+Always **search recursively** to find skills. This is the **global staging pool**. 
+Skills are promoted to `.github/skills/` inside a project to become active for that project.
 
 ## Project Bootstrap — MANDATORY — READ BEFORE DOING ANYTHING
 
@@ -52,17 +56,16 @@ When the user says: "整理一下", "sync up", "/neat", "同步一下", "收尾"
 
 ## General Rule
 
-Before starting any non-trivial engineering task, check if a relevant skill exists at:
+Before starting any non-trivial engineering task, recursively search for relevant skills:
 ```
-<SKILLS_ROOT>/skills/<skill-name>/SKILL.md
+find <SKILLS_ROOT>/skills/ -name "SKILL.md" -type f
+# or PowerShell: Get-ChildItem -Path "<SKILLS_ROOT>/skills" -Recurse -Filter "SKILL.md"
 ```
 
-Available skills (check folder for latest list):
-- api-and-interface-design, browser-testing-with-devtools, ci-cd-and-automation
-- code-review-and-quality, code-simplification, context-engineering
-- debugging-and-error-recovery, deprecation-and-migration, documentation-and-adrs
-- frontend-ui-engineering, git-workflow-and-versioning, idea-refine
-- incremental-implementation, neat-freak, performance-optimization
-- planning-and-task-breakdown, project-bootstrap, security-and-hardening
-- shipping-and-launch, skill-sync, source-driven-development
-- spec-driven-development, test-driven-development, using-agent-skills
+**Core skills** (always present):
+- **neat-freak** — End-of-session documentation and memory sync
+- **project-bootstrap** — Import skills into new projects
+- **skill-sync** — Keep project skills registry aligned
+
+**Additional skills** may be added by users based on their workflow needs.
+To discover available skills, recursively scan the skills directory.

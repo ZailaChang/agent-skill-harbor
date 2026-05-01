@@ -27,10 +27,10 @@ if (Test-Path $ProfilesDir) {
 
 # Build the Copilot instruction entries to inject
 $CopilotInstructions = @(
-    @{ text = "OVERRIDE RULE #1 - HIGHEST PRIORITY: When the user says 'setup skills', 'setup agent skills', '/bootstrap', '/project-setup', 'import skills', or any phrase about setting up skills - STOP IMMEDIATELY. Do NOT search workspace for skill files. Instead: (1) use the Read File tool to read $SkillsRoot\skills\project-bootstrap\SKILL.md, (2) follow its execution flow exactly." },
-    @{ text = "OVERRIDE RULE #2: When the user says 'sync skills', '/skills', '/skill-sync', 'skills list' - use the Read File tool to read $SkillsRoot\skills\skill-sync\SKILL.md and follow its execution flow." },
-    @{ text = "OVERRIDE RULE #3: When the user says 'tidy up docs', '/neat', 'sync up', 'update memory' - use the Read File tool to read $SkillsRoot\skills\neat-freak\SKILL.md and follow its execution flow." },
-    @{ text = "SKILL POOL: $SkillsRoot\skills\ - Check this directory for relevant SKILL.md files before starting any non-trivial engineering task." },
+    @{ text = "OVERRIDE RULE #1 - HIGHEST PRIORITY: When the user says 'setup skills', 'setup agent skills', '/bootstrap', '/project-setup', 'import skills', or any phrase about setting up skills - STOP IMMEDIATELY. Do NOT search workspace for skill files. Instead: (1) recursively search $SkillsRoot\skills\ for project-bootstrap\SKILL.md, (2) read it using the Read File tool, (3) follow its execution flow exactly." },
+    @{ text = "OVERRIDE RULE #2: When the user says 'sync skills', '/skills', '/skill-sync', 'skills list' - recursively search $SkillsRoot\skills\ for skill-sync\SKILL.md, read it, and follow its execution flow." },
+    @{ text = "OVERRIDE RULE #3: When the user says 'tidy up docs', '/neat', 'sync up', 'update memory' - recursively search $SkillsRoot\skills\ for neat-freak\SKILL.md, read it, and follow its execution flow." },
+    @{ text = "SKILL POOL: $SkillsRoot\skills\ - Recursively search this directory and all subdirectories for SKILL.md files before starting any non-trivial engineering task. Skills may be organized in flat or nested structures (e.g., skills/<name>/SKILL.md or skills/repo/skills/<name>/SKILL.md)." },
     @{ file = $LocalInstructions }
 )
 

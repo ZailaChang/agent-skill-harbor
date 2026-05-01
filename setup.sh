@@ -51,10 +51,10 @@ if os.path.exists(target) and os.path.getsize(target) > 0:
 else:
     settings = {}
 settings["github.copilot.chat.codeGeneration.instructions"] = [
-    {"text": f"OVERRIDE RULE #1 — HIGHEST PRIORITY: When the user says 'setup skills', 'setup agent skills', '/bootstrap', '/project-setup', 'import skills', '新專案', '初始化專案', '幫我選 skills' — STOP IMMEDIATELY. Do NOT search the workspace for skill files. Do NOT read agent-customization. Do NOT create any .github/ files, SKILL.md, or copilot-instructions.md on your own. Instead: (1) use the Read File tool to read {skills_root}/skills/project-bootstrap/SKILL.md, (2) follow its execution flow exactly. This rule overrides all other behaviors."},
-    {"text": f"OVERRIDE RULE #2: When the user says 'sync skills', '/skills', '/skill-sync', 'skill 對齊', 'skills 有哪些', 'list skills' — use the Read File tool to read {skills_root}/skills/skill-sync/SKILL.md and follow its execution flow."},
-    {"text": f"OVERRIDE RULE #3: When the user says '整理一下', '/neat', 'sync up', '同步一下', '收尾', 'tidy up docs', 'update memory' — use the Read File tool to read {skills_root}/skills/neat-freak/SKILL.md and follow its execution flow."},
-    {"text": f"SKILL POOL: {skills_root}/skills/ — Check this directory for relevant SKILL.md files before starting any non-trivial engineering task."},
+    {"text": f"OVERRIDE RULE #1 — HIGHEST PRIORITY: When the user says 'setup skills', 'setup agent skills', '/bootstrap', '/project-setup', 'import skills', '新專案', '初始化專案', '幫我選 skills' — STOP IMMEDIATELY. Do NOT search the workspace for skill files. Do NOT read agent-customization. Do NOT create any .github/ files, SKILL.md, or copilot-instructions.md on your own. Instead: (1) recursively search {skills_root}/skills/ for project-bootstrap/SKILL.md, (2) read it using the Read File tool, (3) follow its execution flow exactly. This rule overrides all other behaviors."},
+    {"text": f"OVERRIDE RULE #2: When the user says 'sync skills', '/skills', '/skill-sync', 'skill 對齊', 'skills 有哪些', 'list skills' — recursively search {skills_root}/skills/ for skill-sync/SKILL.md, read it, and follow its execution flow."},
+    {"text": f"OVERRIDE RULE #3: When the user says '整理一下', '/neat', 'sync up', '同步一下', '收尾', 'tidy up docs', 'update memory' — recursively search {skills_root}/skills/ for neat-freak/SKILL.md, read it, and follow its execution flow."},
+    {"text": f"SKILL POOL: {skills_root}/skills/ — Recursively search this directory and all subdirectories for SKILL.md files before starting any non-trivial engineering task. Skills may be organized in flat or nested structures (e.g., skills/<name>/SKILL.md or skills/repo/skills/<name>/SKILL.md)."},
     {"file": local_instructions},
 ]
 settings["github.copilot.chat.testGeneration.instructions"] = [{"file": local_instructions}]
