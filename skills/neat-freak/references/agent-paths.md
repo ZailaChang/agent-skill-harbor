@@ -1,68 +1,68 @@
-# Agent 记忆与配置路径速查
+# Agent Memory & Config Path Reference
 
-不同 agent 平台的记忆系统和项目配置文件位置不一样。执行第一步盘点时按你正在使用的平台查这张表。
+Different agent platforms store memory and project config in different locations. Use this table during Step 1 to find the right paths for whichever platform you are running on.
 
 ## Claude Code
 
-| 用途 | 路径 |
+| Purpose | Path |
 |---|---|
-| 跨会话记忆(全局) | `~/.claude/projects/<encoded-project-path>/memory/` |
-| 记忆索引文件 | `~/.claude/projects/<...>/memory/MEMORY.md` |
-| 全局指令 | `~/.claude/CLAUDE.md` |
-| 项目级指令 | 项目根 `CLAUDE.md`(可层级嵌套) |
-| Skills 目录 | `~/.claude/skills/<name>/SKILL.md` |
+| Cross-session memory (global) | `~/.claude/projects/<encoded-project-path>/memory/` |
+| Memory index file | `~/.claude/projects/<...>/memory/MEMORY.md` |
+| Global instructions | `~/.claude/CLAUDE.md` |
+| Project-level instructions | Project-root `CLAUDE.md` (nestable per directory) |
+| Skills directory | `~/.claude/skills/<name>/SKILL.md` |
 
-记忆文件用 YAML frontmatter:`name`、`description`、`type`(user / feedback / project / reference)。
+Memory files use YAML frontmatter with keys: `name`, `description`, `type` (`user` / `feedback` / `project` / `reference`).
 
 ## OpenAI Codex
 
-| 用途 | 路径 |
+| Purpose | Path |
 |---|---|
-| 跨会话指令(全局) | `~/.codex/AGENTS.md` 或 `$CODEX_HOME/AGENTS.md` |
-| 项目级指令 | 项目根 `AGENTS.md`(可层级嵌套) |
-| 项目级 override | `AGENTS.override.md`(若存在,覆盖同目录 AGENTS.md) |
-| Skills 目录 | `~/.codex/skills/<name>/SKILL.md` 或项目内 `.codex/skills/<name>/` |
+| Cross-session instructions (global) | `~/.codex/AGENTS.md` or `$CODEX_HOME/AGENTS.md` |
+| Project-level instructions | Project-root `AGENTS.md` (nestable per directory) |
+| Project-level override | `AGENTS.override.md` (if present, overrides `AGENTS.md` in the same directory) |
+| Skills directory | `~/.codex/skills/<name>/SKILL.md` or project-local `.codex/skills/<name>/` |
 
-Codex 没有独立的"记忆文件 + 索引"机制,所有跨会话信息都直接写在 `AGENTS.md` 里。同步时把"项目事实"那部分内容统一放 AGENTS.md。
+Codex has no separate "memory files + index" mechanism. All cross-session information goes directly into `AGENTS.md`. During sync, consolidate "project facts" into that file.
 
-发现项目里有 `TEAM_GUIDE.md` 或 `.agents.md` 也要看——这是 Codex 的 fallback 文件名。
+Also check for `TEAM_GUIDE.md` or `.agents.md` in the project — these are Codex fallback filenames.
 
 ## OpenClaw
 
-| 用途 | 路径 |
+| Purpose | Path |
 |---|---|
-| 用户级 skills | `~/.openclaw/skills/<name>/SKILL.md`（首次运行自动创建） |
-| 项目级 skills | `.openclaw/skills/<name>/SKILL.md`（仓库根目录下） |
-| Workspace skills | 当前 workspace 的 `skills/` 目录 |
+| User-level skills | `~/.openclaw/skills/<name>/SKILL.md` (auto-created on first run) |
+| Project-level skills | `.openclaw/skills/<name>/SKILL.md` (under repo root) |
+| Workspace skills | `skills/` directory of the current workspace |
 
-**加载优先级**：workspace > project-agent > personal-agent > managed/local > bundled > extra dirs。同名 skill 高优先级覆盖低优先级。
+**Load priority**: workspace > project-agent > personal-agent > managed/local > bundled > extra dirs. A higher-priority skill with the same name overrides lower-priority ones.
 
-OpenClaw 没有独立的"记忆文件 + 索引"机制，跨会话信息可放在项目根的 markdown（CLAUDE.md / AGENTS.md / 等价文件）里，参照 Codex 的做法。frontmatter 支持 `metadata.openclaw` 字段做加载时的 gating（按 OS、环境变量、二进制依赖筛选），但不是 neat-freak 必需的。
+OpenClaw has no separate memory system. Cross-session information can be placed in a project-root markdown file (CLAUDE.md / AGENTS.md / equivalent), following the Codex pattern. Frontmatter supports a `metadata.openclaw` field for load-time gating (by OS, env var, binary dependency), but this is not required for neat-freak.
 
 ## OpenCode
 
-| 用途 | 路径 |
+| Purpose | Path |
 |---|---|
-| 全局配置 | `~/.config/opencode/` |
-| 项目配置 | `.opencode/` |
-| Skills 目录(项目) | `.opencode/skills/`、`.claude/skills/`、`.codex/skills/` 都会被扫描 |
-| Skills 目录(全局) | `~/.config/opencode/skills/`、`~/.claude/skills/`、`~/.codex/skills/` |
+| Global config | `~/.config/opencode/` |
+| Project config | `.opencode/` |
+| Skills directory (project) | `.opencode/skills/`, `.claude/skills/`, `.codex/skills/` — all are scanned |
+| Skills directory (global) | `~/.config/opencode/skills/`, `~/.claude/skills/`, `~/.codex/skills/` |
 
-OpenCode 同时读取 Claude Code 和 Codex 的目录,所以同一个 skill 装在 `~/.claude/skills/` 下的话三家都能识别。OpenClaw 走自己的 `~/.openclaw/skills/`，需要单独装一份（或用符号链接）。
+OpenCode reads both Claude Code and Codex directories, so a skill installed under `~/.claude/skills/` is recognized by all three. OpenClaw uses its own `~/.openclaw/skills/` and requires a separate install (or a symlink).
 
-## 如果当前 agent 没有独立记忆系统
+## If the Current Agent Has No Dedicated Memory System
 
-跳过"记忆"那一层,把功夫全花在:
-- 项目根 markdown(CLAUDE.md / AGENTS.md / 本平台等价文件)
-- README.md
-- docs/
+Skip the memory layer entirely and focus all effort on:
+- Project-root markdown (`CLAUDE.md` / `AGENTS.md` / platform equivalent)
+- `README.md`
+- `docs/`
 
-仍然是有效的同步——记忆是锦上添花,docs 才是项目知识的最低保障。
+This is still a valid and valuable sync — memory is a bonus on top; docs are the minimum guarantee of project knowledge.
 
-## 跨平台共存策略
+## Co-existence Strategy (Multiple Platforms on One Project)
 
-如果一个项目同时被 Claude Code 用户和 Codex 用户使用,推荐:
+If a project is used by both Claude Code and Codex users:
 
-- **项目根同时放 `CLAUDE.md` 和 `AGENTS.md`**,内容可以互相 symlink 或在两边维护
-- 或者一份内容主文件 + 另一份用一行 `See CLAUDE.md` 跳转
-- docs/ 和 README 是平台中立的,不需要分两份
+- **Put both `CLAUDE.md` and `AGENTS.md` in the project root** — content can be symlinked or maintained in both files
+- Or keep one canonical file and have the other contain a single line: `See CLAUDE.md`
+- `docs/` and `README.md` are platform-neutral — no duplication needed

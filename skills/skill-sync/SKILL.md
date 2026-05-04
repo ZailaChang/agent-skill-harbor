@@ -8,10 +8,13 @@ description: >
   "update skills list", "新 skill 加進去", "skills 清單", "/skills", "/skill-sync",
   "skill 對齊", "哪些 skills", "skills 有哪些", or any phrase asking to list,
   audit, or align the skills registry without a full project sync.
+  Cross-platform: works on Claude Code, OpenAI Codex, OpenCode, and OpenClaw.
 ---
 
 # Skill Sync — Skills Registry Aligner
 
+> **Cross-platform Agent Skill** — Claude Code · OpenAI Codex · OpenCode · OpenClaw.
+>
 > **Scope: skills only.** This skill touches exactly two things:
 > 1. The `using-agent-skills/SKILL.md` decision tree + quick-reference table
 > 2. Any other index files that enumerate skills (e.g., `copilot-instructions.md`)
@@ -27,20 +30,24 @@ As skills accumulate, `using-agent-skills/SKILL.md` goes stale:
 - Descriptions drift from reality
 
 This skill fixes that in one focused pass — surgical, not sweeping.
-
 ---
 
 ## Execution Flow
 
 ### Step 1: Enumerate — What's Actually on Disk
 
-```
-ls <skills-root>/          # e.g., .github/skills/ or agent-skills/skills/
-```
+Detect OS, then run the matching block:
+
+- **Windows** →
+  ```powershell
+  Get-ChildItem '<SKILLS_ROOT>' -Directory | Select-Object -ExpandProperty Name
+  ```
+- **Linux / Mac** →
+  ```bash
+  ls <SKILLS_ROOT>/
+  ```
 
 For each subdirectory, read its `SKILL.md` frontmatter:
-- `name:` — canonical identifier
-- `description:` — one-liner for the quick-reference table
 
 Build an **on-disk registry** list. Example:
 
@@ -67,7 +74,8 @@ Compute three sets:
 | Category | Meaning | Action |
 |----------|---------|--------|
 | **Missing** | On disk, not in declared registry | Add to decision tree + Quick Ref |
-| **Stale** | In declared registry, not on disk at `<skills-root>/` | **STOP — ask user (see Step 3a)** |
+- `name:` — canonical identifier
+- `description:` — one-liner for the quick-reference table
 | **Description drift** | Description differs meaningfully | Update Quick Ref one-liner |
 
 If diff is empty → report "already in sync, no changes needed" and stop.
@@ -78,13 +86,13 @@ For **each** stale skill found, before touching any file, present this prompt to
 
 ```
 ⚠️  Stale skill detected: `<skill-name>`
-    Declared in using-agent-skills/SKILL.md but no folder found at <skills-root>/<skill-name>/
+| **Stale** | In declared registry, not on disk at `<SKILLS_ROOT>/` | **STOP — ask user (see Step 3a)** |
 
     I also checked known staging areas and found:
     → <path-if-found-elsewhere>  (or "not found anywhere")
 
     What should I do?
-    A. mv <found-path> → <skills-root>/<skill-name>/   (install it)
+    Declared in using-agent-skills/SKILL.md but no folder found at <SKILLS_ROOT>/<skill-name>/
     B. Remove from registry (delete decision tree line, Quick Ref row, Lifecycle entry)
     C. Keep ⚠️ marker as-is for now — I'll handle it manually
 
@@ -94,7 +102,7 @@ For **each** stale skill found, before touching any file, present this prompt to
 **Wait for the user's answer before proceeding.**
 - Answer **A** → run the `mv` command, then proceed to Step 4 treating the skill as present.
 - Answer **B** → remove the skill from registry in Step 4.
-- Answer **C** → ensure the `⚠️ not in <skills-root>/ yet` annotation is in the decision tree and Quick Ref row, then move on.
+    A. mv <found-path> → <SKILLS_ROOT>/<skill-name>/   (install it)
 
 If multiple stale skills exist, ask about each one **individually** before making any edits.
 
@@ -121,21 +129,27 @@ Apply changes with actual file edits (not descriptions of edits):
 **For Description drift:**
 - Update only the Quick Ref table cell — don't rewrite the decision tree label.
 
-### Step 5: Check Other Index Files
+- Answer **C** → ensure the `⚠️ not in <SKILLS_ROOT>/ yet` annotation is in the decision tree and Quick Ref row, then move on.
 
-Scan for files that enumerate skills:
-```
-grep -rl "using-agent-skills\|skill.*SKILL.md\|\.github/skills" <project-root> \
-  --include="*.md" --include="*.json" --include="*.yml" -l
-```
-
-Common candidates: `copilot-instructions.md`, `CLAUDE.md`, `.vscode/settings.json` (if skills are listed there).
-
-For each candidate: check if new/removed skills need to appear there too. Only update if the file explicitly lists individual skill names — don't touch files that just reference the skills folder path.
+- [ ] Every directory under `<SKILLS_ROOT>/` appears exactly once in Quick Ref
 
 ### Step 6: Self-Check
 
-- [ ] Every directory under `<skills-root>/` appears exactly once in Quick Ref
+### Step 5: Check Other Index Files
+
+Scan for files that enumerate skills — detect OS, then run the matching block:
+
+- **Windows** →
+  ```powershell
+  Get-ChildItem '<project-root>' -Recurse -Include '*.md','*.json','*.yml' |
+    Select-String -Pattern 'using-agent-skills|skill.*SKILL\.md|\.github/skills' |
+    Select-Object -ExpandProperty Path | Sort-Object -Unique
+  ```
+- **Linux / Mac** →
+  ```bash
+  grep -rl "using-agent-skills\|skill.*SKILL\.md\|\.github/skills" <project-root> \
+    --include="*.md" --include="*.json" --include="*.yml"
+  ```
 - [ ] No skill name appears in the decision tree that doesn't have a folder on disk
 - [ ] Quick Ref descriptions match the first sentence of each SKILL.md's `description:` frontmatter
 - [ ] Phase assignments in Quick Ref are accurate (Define / Plan / Build / Verify / Review / Ship / Maintain)

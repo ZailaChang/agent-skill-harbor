@@ -1,49 +1,49 @@
-# 变更影响矩阵
+# Change Impact Matrix
 
-遇到不确定"这次改动要同步哪些文件"时查这张表。
+Use this table whenever you are unsure which files a change should be synced to.
 
-## 代码层变更 → 文档层变更
+## Code-Layer Changes → Doc-Layer Changes
 
-| 本次对话发生的事 | 要改的文件(按受众) |
+| What happened in this session | Files to update (by audience) |
 |---|---|
-| 新增 API / 路由 | 项目根 markdown 路由清单 · `docs/integration-guide.md` API 速查表 · `docs/architecture.md` Routes 小节 |
-| 新增 / 改名 环境变量 | 项目根 markdown 环境变量表 · `docs/operator-runbook.md` 环境变量章节 · `docs/integration-guide.md`(如果下游要配) |
-| 新增数据库表 / 列 | 项目根 markdown 数据库表 · `docs/architecture.md` Data Model |
-| 新增 / 改动 用户流程 | 项目根 markdown 用户流程 · README 相关命令行示例 · `docs/handoff.md` What Exists Today |
-| 新增大特性(能跨多文件) | 以上全部 + `docs/architecture.md` 新增章节 + `docs/handoff.md` 已完成清单 |
-| 新增术语 / 改命名 | `docs/integration-guide.md` 术语表(如果有)+ 全局搜索旧术语替换 |
-| 部署参数 / 基础设施变化 | `docs/operator-runbook.md` · 项目根 markdown 部署章节 |
-| 下游项目接入方式变化 | 下游项目的 `docs/<integration>.md` · 上游项目的 `integration-guide.md` |
+| New API / route | Project-root markdown route index · `docs/integration-guide.md` API reference table · `docs/architecture.md` Routes section |
+| New / renamed env var | Project-root markdown env var table · `docs/operator-runbook.md` env var section · `docs/integration-guide.md` (if downstream needs to configure it) |
+| New database table / column | Project-root markdown database table · `docs/architecture.md` Data Model |
+| New / changed user flow | Project-root markdown user flow · README CLI examples · `docs/handoff.md` What Exists Today |
+| Large new feature (spans multiple files) | All of the above + new `docs/architecture.md` section + `docs/handoff.md` completed list |
+| New term / rename | `docs/integration-guide.md` glossary (if present) + global search-and-replace of old term |
+| Deployment params / infra change | `docs/operator-runbook.md` · project-root markdown deployment section |
+| Downstream integration method changed | Downstream project's `docs/<integration>.md` · upstream project's `integration-guide.md` |
 
-## 记忆层变更
+## Memory-Layer Changes
 
-| 情况 | 处理方式 |
+| Situation | Action |
 |---|---|
-| 过期事实 | 改记忆文件,同时更新索引(如 MEMORY.md)的 description |
-| 相对时间("今天"、"最近") | 全部转成绝对日期(`2026-04-29` 而非"今天") |
-| 重复记录(多条说同一件事) | 合并为一条,改索引 |
-| 已完成的待办 | 删除——知识库不是历史档案 |
-| 推翻的决策 | 删除旧条目,留新决策 |
-| 跨会话只用一次的临时上下文 | 删除 |
+| Stale fact | Edit the memory file and update the index (e.g. MEMORY.md) `description` |
+| Relative timestamp ("today", "recently") | Convert to absolute date (`2026-04-29`, never "today") |
+| Duplicate entries (multiple entries saying the same thing) | Merge into one entry, update the index |
+| Completed TODO | Delete — the knowledge base is not a history archive |
+| Overturned decision | Delete old entry, keep new decision |
+| Temporary context only used once across sessions | Delete |
 
-## 跨项目影响检查
+## Cross-Project Impact Check
 
-最容易漏改的场景:
+Most commonly missed scenarios:
 
-- **上游 API 变了 → 下游 SDK 文档**:协议变化必须两边对齐
-- **共享子域 / 路由 / 环境变量改了 → 所有 consumer 项目的 setup 文档**
-- **认证中台变更 → 所有接入应用的 integration guide**
-- **公共组件 / 基础设施 升级 → 各项目的 operator-runbook 提及版本号的地方**
+- **Upstream API changed → downstream SDK docs**: protocol changes must be aligned on both sides
+- **Shared subdomain / route / env var changed → setup docs in all consumer projects**
+- **Auth platform changed → integration guide in every connected application**
+- **Shared component / infra upgraded → version references in each project's operator-runbook**
 
-判断方法:这次改的东西有没有 SDK、子域、共享配置、跨进程协议?有就要在所有依赖项目里搜一遍提到这件事的文档。
+How to check: does the thing you changed have an SDK, subdomain, shared config, or cross-process protocol? If yes, search every dependent project's docs for any mention of it.
 
-## 文档结构通用约定
+## Standard Doc Structure Convention
 
-新增一个能力(API、flow、特性)的标准动作是**四处都补**:
+Adding a capability (API, flow, feature) means updating **four places**:
 
-1. **integration-guide / 外部视角文档**:怎么用(curl / SDK 示例 / 错误码)
-2. **architecture**:怎么工作(数据流、状态机、设计取舍)
-3. **runbook**:怎么运维(冒烟命令、故障排查、环境变量)
-4. **handoff / CHANGELOG**:已完成
+1. **integration-guide / external-perspective doc**: how to use it (curl / SDK examples / error codes)
+2. **architecture**: how it works (data flow, state machine, design trade-offs)
+3. **runbook**: how to operate it (smoke commands, troubleshooting, env vars)
+4. **handoff / CHANGELOG**: marked as completed
 
-API 速查表、环境变量表、术语表是高频查询的结构化信息,**必须保持"所见即最新"**。
+API reference tables, env var tables, and glossaries are high-frequency structured lookups — **they must always reflect the current state**.
