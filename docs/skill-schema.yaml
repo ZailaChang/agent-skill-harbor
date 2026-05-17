@@ -1,0 +1,75 @@
+# Skill Schema v1.0
+# This defines the structure for agent-skill-harbor skill metadata
+
+# YAML schema for skill.yaml files
+# Each skill must have a skill.yaml file defining metadata and agent-specific configuration
+
+skill:
+  # Required fields
+  name: string                    # Unique identifier (kebab-case)
+  version: string                 # Semantic version (e.g., "1.0.0")
+  description: string             # One-line description (< 200 chars)
+  
+  # Optional fields
+  longDescription: string         # Detailed description (multi-line)
+  author: string                  # Creator/maintainer
+  license: string                 # License (e.g., "MIT")
+  tags: array<string>             # Categories (e.g., ["debugging", "planning"])
+  
+  # Triggers - how users invoke this skill
+  triggers:
+    natural: array<string>        # Natural language phrases (e.g., "setup skills")
+    command: array<string>        # Slash commands (e.g., "/bootstrap")
+    aliases: array<string>        # Alternative names
+  
+  # Dependencies
+  dependencies: array<string>     # Other skills this depends on (by name)
+  
+  # Agent-specific configuration
+  agents:
+    vscode-copilot:               # GitHub Copilot in VS Code
+      enabled: boolean            # Whether this skill works with this agent
+      target: string              # Where to install in projects (e.g., ".github/skills/")
+      config_file: string         # Project config file (e.g., ".github/copilot-instructions.md")
+      priority: int               # Load order (1=highest)
+      
+    claude-desktop:               # Anthropic Claude Desktop
+      enabled: boolean
+      target: string              # e.g., ".claude/skills/"
+      config_file: string         # e.g., "CLAUDE.md"
+      format: string              # e.g., "mcp-server" or "markdown"
+      
+    cursor:                       # Cursor IDE
+      enabled: boolean
+      target: string              # e.g., ".cursor/prompts/"
+      config_file: string         # e.g., ".cursorrules"
+      
+    generic:                      # Fallback for any agent
+      enabled: boolean
+      format: string              # "markdown" or "text"
+
+# File structure within a skill directory:
+#
+# skills/<skill-name>/
+#   skill.yaml          ← This metadata file
+#   content.md          ← Agent-agnostic skill instructions
+#   README.md           ← Human-readable documentation (optional)
+#   references/         ← Supporting docs (optional)
+#   examples/           ← Usage examples (optional)
+
+# Example minimal skill.yaml:
+#
+# name: project-bootstrap
+# version: 1.0.0
+# description: Sets up a new project by importing skills
+# triggers:
+#   natural:
+#     - setup skills
+#     - bootstrap
+#   command:
+#     - /bootstrap
+# agents:
+#   vscode-copilot:
+#     enabled: true
+#     target: .github/skills/
+#     config_file: .github/copilot-instructions.md

@@ -3,3 +3,16 @@
 
 # VS Code settings backups created by setup.sh
 *.bak
+
+# IDE settings (user-specific)
+.vscode/
+.idea/
+
+# Development artifacts
+.specstory/
+
+# External cloned repos (users add these locally)
+skills/external/
+
+# Test output directory
+test-output/

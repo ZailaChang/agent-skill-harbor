@@ -1,0 +1,65 @@
+name: project-bootstrap
+version: 1.0.0
+description: Sets up a new project by importing relevant skills from the global skill pool into the project's local skill directory.
+
+longDescription: |
+  Project Bootstrap helps you set up new projects with the right skills. It has two modes:
+  - Mode A: Analyzes existing docs/specs to recommend skills automatically
+  - Mode B: Lists all available skills for manual selection when starting from scratch
+  
+  The skill installs selected skills into the project's local directory and creates
+  configuration files to make the agent aware of available skills.
+
+author: ZailaChang
+license: MIT
+tags:
+  - project-setup
+  - skill-management
+  - bootstrap
+  - cross-platform
+
+triggers:
+  natural:
+    - new project
+    - open project
+    - bootstrap
+    - import skills
+    - setup project
+    - setup skills
+    - 初始化專案
+    - 新專案
+    - 專案 setup
+    - 幫我選 skills
+    - import 哪些 skills
+  command:
+    - /bootstrap
+    - /project-setup
+  aliases:
+    - skill-importer
+    - project-setup
+
+dependencies:
+  - skill-sync
+  - neat-freak
+
+agents:
+  vscode-copilot:
+    enabled: true
+    target: .github/skills/
+    config_file: .github/copilot-instructions.md
+    priority: 1
+    
+  claude-desktop:
+    enabled: true
+    target: .claude/skills/
+    config_file: CLAUDE.md
+    format: markdown
+    
+  cursor:
+    enabled: true
+    target: .cursor/prompts/
+    config_file: .cursorrules
+    
+  generic:
+    enabled: true
+    format: markdown

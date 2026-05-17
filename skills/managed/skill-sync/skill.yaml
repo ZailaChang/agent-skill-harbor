@@ -1,0 +1,64 @@
+name: skill-sync
+version: 1.0.0
+description: Dynamically reconciles the skills registry against actual skill directories on disk — adds missing entries, removes stale ones, and updates descriptions.
+
+longDescription: |
+  Skill Sync keeps your skills registry in sync with reality. As skills accumulate, 
+  the registry can go stale with new skills being invisible, renamed/removed skills
+  leaving ghost entries, and descriptions drifting from reality.
+  
+  This skill touches exactly two things:
+  1. The using-agent-skills/SKILL.md decision tree + quick-reference table
+  2. Any other index files that enumerate skills (e.g., copilot-instructions.md)
+  
+  It does NOT touch project docs, agent memory, README, or CLAUDE.md.
+
+author: ZailaChang
+license: MIT
+tags:
+  - skill-management
+  - registry-sync
+  - maintenance
+  - cross-platform
+
+triggers:
+  natural:
+    - sync skills
+    - 整理 skills
+    - 列出 skills
+    - update skills list
+    - 新 skill 加進去
+    - skills 清單
+    - skill 對齊
+    - 哪些 skills
+    - skills 有哪些
+  command:
+    - /skills
+    - /skill-sync
+  aliases:
+    - skill-registry
+    - list-skills
+
+dependencies: []
+
+agents:
+  vscode-copilot:
+    enabled: true
+    target: .github/skills/
+    config_file: .github/copilot-instructions.md
+    priority: 2
+    
+  claude-desktop:
+    enabled: true
+    target: .claude/skills/
+    config_file: CLAUDE.md
+    format: markdown
+    
+  cursor:
+    enabled: true
+    target: .cursor/prompts/
+    config_file: .cursorrules
+    
+  generic:
+    enabled: true
+    format: markdown

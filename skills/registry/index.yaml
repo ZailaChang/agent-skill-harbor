@@ -1,0 +1,56 @@
+# Skill Registry
+# Tracks all skills (managed + external) for visibility and governance
+
+version: 1.0.1
+updated: 2026-05-17
+
+# Managed skills (require skill.yaml, full control)
+managed:
+  neat-freak:
+    source: managed/neat-freak
+    format: vendor-neutral
+    quality: controlled
+    description: End-of-session knowledge cleanup — syncs docs, memory, and project conventions
+    
+  project-bootstrap:
+    source: managed/project-bootstrap
+    format: vendor-neutral
+    quality: controlled
+    description: Analyzes project and imports relevant skills into .github/skills/
+    
+  skill-sync:
+    source: managed/skill-sync
+    format: vendor-neutral
+    quality: controlled
+    description: Keeps project skills registry aligned with available skills
+
+# External skills (any format, lazy integration)
+external:
+  example-external-skill:
+    source: external/example-external-skill
+    format: copilot-native
+    quality: example
+    notes: Demo skill showing flat external structure
+  
+  agent-skills:
+    source: external/agent-skills
+    origin: https://github.com/addyosmani/agent-skills.git
+    format: nested-repo
+    quality: community
+    skills_count: 23
+    notes: |
+      Nested repo structure: agent-skills/skills/*/SKILL.md
+      Auto-discovered skills include: using-agent-skills, test-driven-development,
+      frontend-ui-engineering, api-and-interface-design, debugging-and-error-recovery,
+      and 18 more. All copied as-is during installation.
+
+# Installation policy
+policy:
+  managed:
+    conversion: required       # Convert skill.yaml → SKILL.md
+    validation: strict         # Fail if skill.yaml missing
+    
+  external:
+    conversion: disabled       # Copy SKILL.md as-is
+    validation: lenient        # Just check SKILL.md exists
+    nested_repos: supported    # Auto-discover skills in <repo>/skills/ subdirs

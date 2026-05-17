@@ -1,0 +1,63 @@
+name: neat-freak
+version: 1.0.0
+description: End-of-session knowledge cleanup with OCD-level rigor — reconciles project docs (CLAUDE.md, README.md, docs/) and agent memory against the code so nothing rots.
+
+longDescription: |
+  Neat-Freak is a knowledge base editor, not a recorder. It audits the whole picture,
+  merges duplicates, corrects stale entries, and deletes dead content. Keeps every layer
+  of the project's knowledge clean, accurate, and newcomer-friendly — with obsessive precision.
+  
+  Works across three knowledge layers:
+  - Agent memory (preferences, project facts, cross-project references)
+  - Project root docs (CLAUDE.md, AGENTS.md - project conventions)
+  - Public documentation (docs/, README.md - integration guides, architecture)
+
+author: ZailaChang
+license: MIT
+tags:
+  - documentation
+  - memory-management
+  - session-cleanup
+  - cross-platform
+
+triggers:
+  natural:
+    - sync up
+    - tidy up docs
+    - update memory
+    - clean up docs
+    - 同步一下
+    - 整理文件
+    - 整理一下
+    - 更新記憶
+    - 階段完成
+  command:
+    - /sync
+    - /neat
+  aliases:
+    - knowledge-sync
+    - doc-reconciliation
+
+dependencies: []
+
+agents:
+  vscode-copilot:
+    enabled: true
+    target: .github/skills/
+    config_file: .github/copilot-instructions.md
+    priority: 1
+    
+  claude-desktop:
+    enabled: true
+    target: .claude/skills/
+    config_file: CLAUDE.md
+    format: markdown
+    
+  cursor:
+    enabled: true
+    target: .cursor/prompts/
+    config_file: .cursorrules
+    
+  generic:
+    enabled: true
+    format: markdown

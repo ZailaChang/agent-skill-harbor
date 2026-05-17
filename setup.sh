@@ -1,97 +1,140 @@
 #!/usr/bin/env bash
-# setup.sh — Install agent-skill-harbor for VS Code (Linux / macOS / SSH Remote)
-# Run once after cloning: bash setup.sh
+# setup.sh — Agent-agnostic installer for agent-skill-harbor
+# Detects your AI assistant and installs skills in the correct format
+#
+# Usage:
+#   bash setup.sh                    # Auto-detect agent
+#   bash setup.sh --agent copilot    # Force specific agent
+#   bash setup.sh install            # Pass mode to adapter
+#   bash setup.sh --agent copilot dev  # Specify agent and mode
+
 set -e
 
-SKILLS_ROOT="$(cd "$(dirname "$0")" && pwd)"
+SOURCE_ROOT="$(cd "$(dirname "$0")" && pwd)"
 
-# Generate a LOCAL copy of GLOBAL_INSTRUCTIONS.md with real paths (never modify source)
-LOCAL_DIR="$SKILLS_ROOT/.local"
-mkdir -p "$LOCAL_DIR"
-LOCAL_INSTRUCTIONS="$LOCAL_DIR/GLOBAL_INSTRUCTIONS.md"
-sed "s|<SKILLS_ROOT>|$SKILLS_ROOT|g" "$SKILLS_ROOT/GLOBAL_INSTRUCTIONS.md" > "$LOCAL_INSTRUCTIONS"
-echo "✅ Generated: $LOCAL_INSTRUCTIONS"
+# Parse arguments
+AGENT=""
+MODE="install"
+AUTO_DETECT=true
 
-# Detect settings.json locations
-if [[ "$1" == "--ssh-remote" ]] || [[ -d "$HOME/.vscode-server" ]]; then
-  USER_SETTINGS="$HOME/.vscode-server/data/User/settings.json"
-  PROFILES_DIR="$HOME/.vscode-server/data/User/profiles"
-elif [[ "$OSTYPE" == "darwin"* ]]; then
-  USER_SETTINGS="$HOME/Library/Application Support/Code/User/settings.json"
-  PROFILES_DIR="$HOME/Library/Application Support/Code/User/profiles"
-else
-  USER_SETTINGS="$HOME/.config/Code/User/settings.json"
-  PROFILES_DIR="$HOME/.config/Code/User/profiles"
-fi
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --agent)
+      AGENT="$2"
+      AUTO_DETECT=false
+      shift 2
+      ;;
+    install|dev|update|uninstall)
+      MODE="$1"
+      shift
+      ;;
+    --help|-h)
+      cat <<EOF
+agent-skill-harbor setup
 
-# Collect all profiles that already have a settings.json
-PROFILE_SETTINGS=()
-if [[ -d "$PROFILES_DIR" ]]; then
-  while IFS= read -r -d '' p; do
-    PROFILE_SETTINGS+=("$p")
-  done < <(find "$PROFILES_DIR" -maxdepth 2 -name "settings.json" -print0 2>/dev/null | sort -z)
-fi
+Usage:
+  bash setup.sh [--agent AGENT] [MODE]
 
-# merge_settings: read existing JSON, inject only Copilot keys, write back (requires python3)
-merge_settings() {
-  local target="$1"
-  mkdir -p "$(dirname "$target")"
-  if [[ -f "$target" ]]; then
-    echo "⚠️  $target already exists — backing up to ${target}.bak"
-    cp "$target" "${target}.bak"
-  fi
-  python3 - "$target" "$LOCAL_INSTRUCTIONS" "$SKILLS_ROOT" <<'PYEOF'
-import sys, json, os
-target, local_instructions, skills_root = sys.argv[1], sys.argv[2], sys.argv[3]
-if os.path.exists(target) and os.path.getsize(target) > 0:
-    try:
-        settings = json.load(open(target))
-    except Exception:
-        settings = {}
-else:
-    settings = {}
-settings["github.copilot.chat.codeGeneration.instructions"] = [
-    {"text": f"OVERRIDE RULE #1 — HIGHEST PRIORITY: When the user says 'setup skills', 'setup agent skills', '/bootstrap', '/project-setup', 'import skills', '新專案', '初始化專案', '幫我選 skills' — STOP IMMEDIATELY. Do NOT search the workspace for skill files. Do NOT read agent-customization. Do NOT create any .github/ files, SKILL.md, or copilot-instructions.md on your own. Instead: (1) recursively search {skills_root}/skills/ for project-bootstrap/SKILL.md, (2) read it using the Read File tool, (3) follow its execution flow exactly. This rule overrides all other behaviors."},
-    {"text": f"OVERRIDE RULE #2: When the user says 'sync skills', '/skills', '/skill-sync', 'skill 對齊', 'skills 有哪些', 'list skills' — recursively search {skills_root}/skills/ for skill-sync/SKILL.md, read it, and follow its execution flow."},
-    {"text": f"OVERRIDE RULE #3: When the user says '整理一下', '/neat', 'sync up', '同步一下', '收尾', 'tidy up docs', 'update memory' — recursively search {skills_root}/skills/ for neat-freak/SKILL.md, read it, and follow its execution flow."},
-    {"text": f"SKILL POOL: {skills_root}/skills/ — Recursively search this directory and all subdirectories for SKILL.md files before starting any non-trivial engineering task. Skills may be organized in flat or nested structures (e.g., skills/<name>/SKILL.md or skills/repo/skills/<name>/SKILL.md)."},
-    {"file": local_instructions},
-]
-settings["github.copilot.chat.testGeneration.instructions"] = [{"file": local_instructions}]
-settings["github.copilot.chat.reviewSelection.instructions"] = [{"file": local_instructions}]
-with open(target, 'w') as f:
-    json.dump(settings, f, indent=2, ensure_ascii=False)
-    f.write('\n')
-PYEOF
-  echo "✅ Written: $target"
-}
+Agents:
+  vscode-copilot    GitHub Copilot in VS Code (default if detected)
+  claude-desktop    Anthropic Claude Desktop (coming soon)
+  cursor            Cursor IDE (coming soon)
 
-merge_settings "$USER_SETTINGS"
+Modes:
+  install           Copy to standard location (default)
+  dev               Symlink to source for development
+  update            Pull latest and reinstall
+  uninstall         Remove from runtime location
 
-# Profile picker — show numbered list, let user pick one or all
-if [[ ${#PROFILE_SETTINGS[@]} -gt 0 ]]; then
-  echo ""
-  echo "Found ${#PROFILE_SETTINGS[@]} profile(s) with settings:"
-  for i in "${!PROFILE_SETTINGS[@]}"; do
-    echo "  [$((i+1))] ${PROFILE_SETTINGS[$i]}"
-  done
-  echo "  [A] All profiles"
-  echo "  [Enter] Skip"
-  read -rp "Merge into which profile? " choice
-  if [[ "$choice" =~ ^[Aa]$ ]]; then
-    for p in "${PROFILE_SETTINGS[@]}"; do merge_settings "$p"; done
-  elif [[ "$choice" =~ ^[0-9]+$ ]]; then
-    idx=$((choice - 1))
-    if [[ $idx -ge 0 && $idx -lt ${#PROFILE_SETTINGS[@]} ]]; then
-      merge_settings "${PROFILE_SETTINGS[$idx]}"
-    else
-      echo "Invalid number — skipping profiles."
+Examples:
+  bash setup.sh                      # Auto-detect agent, install mode
+  bash setup.sh dev                  # Auto-detect agent, dev mode
+  bash setup.sh --agent copilot dev  # Force Copilot, dev mode
+
+EOF
+      exit 0
+      ;;
+    *)
+      echo "Unknown argument: $1"
+      echo "Run 'bash setup.sh --help' for usage"
+      exit 1
+      ;;
+  esac
+done
+
+# Auto-detect agent if not specified
+if [[ "$AUTO_DETECT" == "true" ]]; then
+  echo "Detecting AI assistant..."
+  
+  # Check for VS Code + Copilot
+  if [[ -f "$HOME/.config/Code/User/settings.json" ]]; then
+    if grep -q "github.copilot" "$HOME/.config/Code/User/settings.json" 2>/dev/null; then
+      AGENT="vscode-copilot"
+      echo "   Found: GitHub Copilot in VS Code"
     fi
-  else
-    echo "Skipping profiles."
+  elif [[ -f "$HOME/Library/Application Support/Code/User/settings.json" ]]; then
+    if grep -q "github.copilot" "$HOME/Library/Application Support/Code/User/settings.json" 2>/dev/null; then
+      AGENT="vscode-copilot"
+      echo "   Found: GitHub Copilot in VS Code"
+    fi
+  fi
+  
+  # Check for Claude Desktop (macOS)
+  if [[ -z "$AGENT" ]] && [[ -d "$HOME/Library/Application Support/Claude" ]]; then
+    AGENT="claude-desktop"
+    echo "   Found: Claude Desktop"
+  fi
+  
+  # Check for Cursor
+  if [[ -z "$AGENT" ]] && [[ -d "$HOME/.config/Cursor" || -d "$HOME/Library/Application Support/Cursor" ]]; then
+    AGENT="cursor"
+    echo "   Found: Cursor IDE"
+  fi
+  
+  # Fallback
+  if [[ -z "$AGENT" ]]; then
+    echo ""
+    echo "No supported AI assistant detected."
+    echo ""
+    echo "Supported assistants:"
+    echo "  - GitHub Copilot (VS Code)"
+    echo "  - Claude Desktop (coming soon)"
+    echo "  - Cursor IDE (coming soon)"
+    echo ""
+    echo "If you have one installed, specify it manually:"
+    echo "  bash setup.sh --agent vscode-copilot"
+    exit 1
   fi
 fi
 
+# Check if adapter exists
+ADAPTER_DIR="$SOURCE_ROOT/adapters/$AGENT"
+if [[ ! -d "$ADAPTER_DIR" ]]; then
+  echo "Adapter not found: $AGENT"
+  echo "   Expected: $ADAPTER_DIR"
+  echo ""
+  echo "Available adapters:"
+  for adapter in "$SOURCE_ROOT/adapters"/*; do
+    if [[ -d "$adapter" ]]; then
+      echo "  - $(basename "$adapter")"
+    fi
+  done
+  exit 1
+fi
+
+# Check if adapter has install script
+ADAPTER_SCRIPT="$ADAPTER_DIR/install.sh"
+if [[ ! -f "$ADAPTER_SCRIPT" ]]; then
+  echo "Adapter not yet implemented: $AGENT"
+  echo "   Missing: $ADAPTER_SCRIPT"
+  echo ""
+  echo "This adapter is a placeholder. Check the README for implementation status."
+  exit 1
+fi
+
+# Run adapter
 echo ""
-echo "✅ Done. Reload VS Code window: Ctrl+Shift+P → Developer: Reload Window"
-echo "   Skills root: $SKILLS_ROOT"
+echo "Running $AGENT adapter (mode: $MODE)..."
+echo ""
+
+bash "$ADAPTER_SCRIPT" "$MODE"

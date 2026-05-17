@@ -2,9 +2,12 @@
 
 > These are MANDATORY rules. Follow them exactly. Do not improvise.
 >
-> **After cloning this repo:** run `bash setup.sh` (Linux/macOS) or `.\setup.ps1` (Windows).
-> The setup script replaces `<SKILLS_ROOT>` below with your actual clone path and generates
-> `.local/GLOBAL_INSTRUCTIONS.md`, which VS Code references via `settings.json`.
+> **Standard installation location (all users):**
+> - Windows: `%USERPROFILE%\.copilot\skills\`
+> - Linux/macOS: `~/.copilot/skills/`
+>
+> **After cloning this repo:** Run `bash setup.sh install` (Linux/macOS) or `.\setup.ps1 install` (Windows).
+> The setup script copies/symlinks skills to the standard location and configures VS Code to use them.
 
 ## Skill Pool Location
 
@@ -13,9 +16,18 @@ All agent skills are stored under:
 <SKILLS_ROOT>/skills/
 ```
 
+**Two-Tier Structure:**
+- `<SKILLS_ROOT>/skills/managed/` - Vendor-neutral format (skill.yaml + content.md), strict validation
+- `<SKILLS_ROOT>/skills/external/` - Any format (just needs SKILL.md), copied as-is, zero assumptions
+
+**Note:** `<SKILLS_ROOT>` is a placeholder replaced by the setup script with the actual runtime path.
+For end users, this will be the standard location (`~/.copilot/skills/` or `%USERPROFILE%\.copilot\skills\`).
+For developers using `dev` mode, this points to the git repository via symlink.
+
 Skills may be organized in **flat or nested structures**:
-- `<SKILLS_ROOT>/skills/<skill-name>/SKILL.md` (direct)
-- `<SKILLS_ROOT>/skills/<repo>/skills/<skill-name>/SKILL.md` (nested from cloned repos)
+- `<SKILLS_ROOT>/skills/managed/<skill-name>/` (managed skills)
+- `<SKILLS_ROOT>/skills/external/<skill-name>/SKILL.md` (flat external)
+- `<SKILLS_ROOT>/skills/external/<repo>/skills/<skill-name>/SKILL.md` (nested repo)
 
 Always **search recursively** to find skills. This is the **global staging pool**. 
 Skills are promoted to `.github/skills/` inside a project to become active for that project.
